@@ -17,10 +17,19 @@ class GenericRestEndpointTest {
     private MockMvc mockMvc;
 
     @Test
-    void apiOk() throws Exception {
+    void api401() throws Exception {
         mockMvc.perform(get("/api/todos"))
+                .andExpect(status().isUnauthorized())
+                .andDo(print())
+                .andExpect(content().string(""));
+    }
+
+
+    @Test
+    void apiServicesOk() throws Exception {
+        mockMvc.perform(get("/api/services"))
                 .andExpect(status().isOk())
                 .andDo(print())
-                .andExpect(content().string("[\"API_OK\"]"));
+                .andExpect(content().string("[\"one\",\"two\"]"));
     }
 }
