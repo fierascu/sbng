@@ -8,10 +8,11 @@ Steps:
 5. Add call from Angular to SpringBoot: done
 6. Add CXF: tried baeldung and cxf doc, bypass with mock api services: done
 7. Add SpringBoot Security for angular resource: done
-8. AngularServletFilter?
-9. SecurityConfig.Cors?
-10. SecurityConfig.csrf?
-11. SecurityConfig.oauth2Login?
+8. AngularServletFilter: lang chooser?
+9. SecurityConfig.Cors: done
+10. SecurityConfig.csrf: done
+11. SecurityConfig.oauth2Login: done
+12. Real CXF?
 
 #Notes
 
