@@ -15,8 +15,7 @@ import java.util.List;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.httpBasic;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
@@ -106,6 +105,24 @@ class TodosControllerTest {
                 .andExpect(status().isOk())
                 .andDo(print())
                 .andExpect(content().string("[\"todo1\"]"));
+    }
+
+    @Test
+    void testCorsPreflightAllowsConfiguredOrigin() throws Exception {
+        mockMvc.perform(options("/api/todos")
+                        .header("Origin", "http://localhost:4200")
+                        .header("Access-Control-Request-Method", "GET"))
+                .andExpect(status().isOk())
+                .andExpect(header().string("Access-Control-Allow-Origin", "http://localhost:4200"))
+                .andExpect(header().string("Access-Control-Allow-Credentials", "true"));
+    }
+
+    @Test
+    void testCorsPreflightRejectsUnknownOrigin() throws Exception {
+        mockMvc.perform(options("/api/todos")
+                        .header("Origin", "http://evil.example.com")
+                        .header("Access-Control-Request-Method", "GET"))
+                .andExpect(header().doesNotExist("Access-Control-Allow-Origin"));
     }
 
 }
