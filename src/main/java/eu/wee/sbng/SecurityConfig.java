@@ -35,7 +35,6 @@ import java.util.List;
 @EnableWebSecurity
 public class SecurityConfig {
 
-    // initial https://docs.spring.io/spring-security/reference/servlet/authentication/passwords/index.html
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
         http
@@ -49,6 +48,9 @@ public class SecurityConfig {
                 .csrf(csrf -> csrf
                         .csrfTokenRepository(CookieCsrfTokenRepository.withHttpOnlyFalse())
                         .csrfTokenRequestHandler(new CsrfTokenRequestAttributeHandler())
+                        // /services/** is unauthenticated by design (see authorizeHttpRequests below);
+                        // a CSRF token would otherwise still be demanded on its POSTs, so exempt it too.
+                        .ignoringRequestMatchers("/services/**")
                         // CsrfConfigurer defaults this to CsrfAuthenticationStrategy, which rotates
                         // (clears) the CSRF cookie on every authentication event. With httpBasic +
                         // STATELESS every request re-authenticates from scratch, so that rotation
@@ -63,6 +65,8 @@ public class SecurityConfig {
                 .authorizeHttpRequests(auth -> auth
                         // /** after services implies any endpoint after this
                         .requestMatchers("/services/**").permitAll()
+                        // browsers auto-request this; don't force Basic auth on it
+                        .requestMatchers("/favicon.ico").permitAll()
                         .anyRequest().authenticated())
                 .httpBasic(Customizer.withDefaults());
 
