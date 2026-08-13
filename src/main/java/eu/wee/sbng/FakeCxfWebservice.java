@@ -13,17 +13,17 @@ public class FakeCxfWebservice {
 
     private static final List<String> SERVICES = new ArrayList<>();
 
-    @GetMapping("/services")
+    @GetMapping("/api2/services")
     public String getList() {
         return "CXF_API_OK";
     }
 
-    @GetMapping("/services/")
+    @GetMapping("/api2/services/")
     public List<String> getAllServices() {
         return SERVICES;
     }
 
-    @PostMapping("/services/{service}")
+    @PostMapping("/api2/services/{service}")
     public List<String> addToService(@PathVariable String service) {
         SERVICES.add(service);
         return SERVICES;

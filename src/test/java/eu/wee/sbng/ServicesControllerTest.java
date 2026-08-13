@@ -21,7 +21,7 @@ class ServicesControllerTest {
 
     @Test
     void testServicesController200() throws Exception {
-        mockMvc.perform(get("/services"))
+        mockMvc.perform(get("/api2/services"))
                 .andExpect(status().isOk())
                 .andDo(print())
                 .andExpect(content().string("CXF_API_OK"));
@@ -29,7 +29,7 @@ class ServicesControllerTest {
 
     @Test
     void testServicesController200Post() throws Exception {
-        mockMvc.perform(post("/services/{service}", "service12")
+        mockMvc.perform(post("/api2/services/{service}", "service12")
                         .content(""))
                 .andExpect(status().isOk())
                 .andDo(print())
