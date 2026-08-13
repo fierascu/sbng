@@ -7,20 +7,20 @@ import jakarta.servlet.http.HttpServletResponse;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.core.annotation.Order;
 import org.springframework.security.config.Customizer;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.core.userdetails.User;
-import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.provisioning.InMemoryUserDetailsManager;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.session.NullAuthenticatedSessionStrategy;
-import org.springframework.security.web.authentication.www.BasicAuthenticationFilter;
 import org.springframework.security.web.csrf.CookieCsrfTokenRepository;
+import org.springframework.security.web.csrf.CsrfFilter;
 import org.springframework.security.web.csrf.CsrfToken;
 import org.springframework.security.web.csrf.CsrfTokenRequestAttributeHandler;
 import org.springframework.web.cors.CorsConfiguration;
@@ -35,40 +35,80 @@ import java.util.List;
 @EnableWebSecurity
 public class SecurityConfig {
 
+    // /api/tasks/** uses httpBasic instead of the Keycloak oauth2Login below - evaluated first
+    // (lower @Order) so its securityMatcher carves those requests out of the oauth2Login chain.
     @Bean
-    public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
+    @Order(1)
+    public SecurityFilterChain tasksSecurityFilterChain(HttpSecurity http) throws Exception {
         http
-                // needed only when the SPA is served from a different origin than the API
-                // (ng serve's proxy.conf.json keeps them same-origin in dev, so this mainly
-                // matters for a production split-origin deployment).
+                .securityMatcher("/api/tasks/**")
                 .cors(Customizer.withDefaults())
-                // cookie-based repository: works with STATELESS sessions and matches Angular's
-                // default HttpClientXsrfModule, which reads the XSRF-TOKEN cookie and echoes it
-                // back as the X-XSRF-TOKEN header on state-changing requests.
                 .csrf(csrf -> csrf
                         .csrfTokenRepository(CookieCsrfTokenRepository.withHttpOnlyFalse())
                         .csrfTokenRequestHandler(new CsrfTokenRequestAttributeHandler())
-                        // /services/** is unauthenticated by design (see authorizeHttpRequests below);
-                        // a CSRF token would otherwise still be demanded on its POSTs, so exempt it too.
-                        .ignoringRequestMatchers("/services/**")
                         // CsrfConfigurer defaults this to CsrfAuthenticationStrategy, which rotates
                         // (clears) the CSRF cookie on every authentication event. With httpBasic +
                         // STATELESS every request re-authenticates from scratch, so that rotation
                         // fires on every request and immediately invalidates the cookie the client
                         // just used. There's no login session here to protect from fixation, so skip it.
                         .sessionAuthenticationStrategy(new NullAuthenticatedSessionStrategy()))
+                .addFilterAfter(new CsrfCookieFilter(), CsrfFilter.class)
+                .sessionManagement(s -> s.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
+                .authorizeHttpRequests(auth -> auth.anyRequest().authenticated())
+                .httpBasic(Customizer.withDefaults());
+
+        return http.build();
+    }
+
+    @Bean
+    public PasswordEncoder passwordEncoder() {
+        return new BCryptPasswordEncoder();
+    }
+
+    @Bean
+    public UserDetailsService userDetailsService(PasswordEncoder encoder) {
+        return new InMemoryUserDetailsManager(User.builder()
+                .username("q")
+                .password(encoder.encode("q"))
+                .roles("USER")
+                .build());
+    }
+
+    // was httpBasic, see https://docs.spring.io/spring-security/reference/servlet/authentication/passwords/index.html
+    // now delegates authentication to Keycloak, see docker-compose.yml + keycloak/realm-export.json
+    @Bean
+    @Order(2)
+    public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
+        http
+                // needed only when the SPA is served from a different origin than the API
+                // (ng serve's proxy.conf.json keeps them same-origin in dev, so this mainly
+                // matters for a production split-origin deployment).
+                .cors(Customizer.withDefaults())
+                // cookie-based repository matches Angular's default HttpClientXsrfModule,
+                // which reads the XSRF-TOKEN cookie and echoes it back as the X-XSRF-TOKEN
+                // header on state-changing requests.
+                .csrf(csrf -> csrf
+                        .csrfTokenRepository(CookieCsrfTokenRepository.withHttpOnlyFalse())
+                        .csrfTokenRequestHandler(new CsrfTokenRequestAttributeHandler())
+                        // /api2/services/** is unauthenticated by design (see authorizeHttpRequests below);
+                        // a CSRF token would otherwise still be demanded on its POSTs, so exempt it too.
+                        .ignoringRequestMatchers("/api2/services/**"))
                 // CookieCsrfTokenRepository only writes the cookie once the token is actually
                 // read; force that read on every request so the cookie is present before the
                 // SPA needs it for its first POST/PUT/DELETE.
-                .addFilterAfter(new CsrfCookieFilter(), BasicAuthenticationFilter.class)
-                .sessionManagement(s -> s.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
+                .addFilterAfter(new CsrfCookieFilter(), CsrfFilter.class)
                 .authorizeHttpRequests(auth -> auth
                         // /** after services implies any endpoint after this
-                        .requestMatchers("/services/**").permitAll()
+                        .requestMatchers("/api2/services/**").permitAll()
                         // browsers auto-request this; don't force Basic auth on it
                         .requestMatchers("/favicon.ico").permitAll()
+                        // Spring Security filters the ERROR dispatch too (not just the original
+                        // REQUEST), so a 401 from the /api/tasks Basic chain gets forwarded here
+                        // internally by Boot's error handling and would otherwise be re-challenged
+                        // by oauth2Login below, replacing the Basic 401 with a Keycloak redirect.
+                        .requestMatchers("/error").permitAll()
                         .anyRequest().authenticated())
-                .httpBasic(Customizer.withDefaults());
+                .oauth2Login(Customizer.withDefaults());
 
         return http.build();
     }
@@ -96,21 +136,6 @@ public class SecurityConfig {
 
             filterChain.doFilter(request, response);
         }
-    }
-
-    @Bean
-    public PasswordEncoder passwordEncoder() {
-        return new BCryptPasswordEncoder();
-    }
-
-    @Bean
-    public UserDetailsService userDetailsService(PasswordEncoder encoder) {
-        UserDetails user = User.builder()
-                .username("q")
-                .password(encoder.encode("q"))
-                .roles("USER")
-                .build();
-        return new InMemoryUserDetailsManager(user);
     }
 
 }

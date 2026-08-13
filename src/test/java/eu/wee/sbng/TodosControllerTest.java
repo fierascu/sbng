@@ -14,13 +14,13 @@ import org.springframework.test.web.servlet.MvcResult;
 import java.util.List;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.httpBasic;
+import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.oidcLogin;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
 @WebMvcTest
-@Import(SecurityConfig.class)
+@Import({SecurityConfig.class, TestOAuth2ClientConfig.class})
 class TodosControllerTest {
 
     @Autowired
@@ -32,16 +32,16 @@ class TodosControllerTest {
     }
 
     @Test
-    void testTodosController401() throws Exception {
+    void testTodosControllerRedirectsToKeycloakWhenAnonymous() throws Exception {
         mockMvc.perform(get("/api/todos"))
-                .andExpect(status().isUnauthorized())
+                .andExpect(status().is3xxRedirection())
                 .andDo(print())
-                .andExpect(content().string(""));
+                .andExpect(redirectedUrl("http://localhost/oauth2/authorization/keycloak"));
     }
 
     @Test
     void testTodosController200() throws Exception {
-        mockMvc.perform(get("/api/todos").with(httpBasic("q", "q")))
+        mockMvc.perform(get("/api/todos").with(oidcLogin()))
                 .andExpect(status().isOk())
                 .andDo(print())
                 .andExpect(content().string("[]"));
@@ -49,7 +49,7 @@ class TodosControllerTest {
 
     @Test
     void testApiTodosGetAndPostAndGet() throws Exception {
-        MvcResult getResult = mockMvc.perform(get("/api/todos").with(httpBasic("q", "q")))
+        MvcResult getResult = mockMvc.perform(get("/api/todos").with(oidcLogin()))
                 .andExpect(status().isOk())
                 .andDo(print())
                 .andExpect(content().string("[]"))
@@ -60,14 +60,14 @@ class TodosControllerTest {
 
         mockMvc.perform(post("/api/todos/{todo}", "todo1")
                         .content("")
-                        .with(httpBasic("q", "q"))
+                        .with(oidcLogin())
                         .cookie(xsrfCookie)
                         .header("X-XSRF-TOKEN", xsrfCookie.getValue()))
                 .andExpect(status().isOk())
                 .andDo(print())
                 .andExpect(content().string("[\"todo1\"]"));
 
-        mockMvc.perform(get("/api/todos").with(httpBasic("q", "q")))
+        mockMvc.perform(get("/api/todos").with(oidcLogin()))
                 .andExpect(status().isOk())
                 .andDo(print())
                 .andExpect(content().string("[\"todo1\"]"));
@@ -77,7 +77,7 @@ class TodosControllerTest {
     void testApiTodosGetAndPostAndGetSameSession() throws Exception {
         MockHttpSession session = new MockHttpSession();
 
-        MvcResult getResult = mockMvc.perform(get("/api/todos").with(httpBasic("q", "q")).session(session))
+        MvcResult getResult = mockMvc.perform(get("/api/todos").with(oidcLogin()).session(session))
                 .andExpect(status().isOk())
                 .andDo(print())
                 .andExpect(content().string("[]"))
@@ -88,7 +88,7 @@ class TodosControllerTest {
 
         MvcResult postResult = mockMvc.perform(post("/api/todos/{todo}", "todo1")
                         .content("")
-                        .with(httpBasic("q", "q"))
+                        .with(oidcLogin())
                         .session(session)
                         .cookie(xsrfCookie)
                         .header("X-XSRF-TOKEN", xsrfCookie.getValue()))
@@ -97,11 +97,12 @@ class TodosControllerTest {
                 .andExpect(content().string("[\"todo1\"]"))
                 .andReturn();
 
-        // the CSRF cookie must survive being used, not get rotated/invalidated by the Basic-Auth
-        // re-authentication on every request (regression check for the token-rotation bug)
+        // oidcLogin() seeds the session as already-authenticated, so no login (authentication)
+        // event fires on these requests, and CsrfAuthenticationStrategy's default cookie
+        // rotation - which only runs on such an event - never triggers mid-session.
         assertThat(postResult.getResponse().getCookie("XSRF-TOKEN")).isNull();
 
-        mockMvc.perform(get("/api/todos").with(httpBasic("q", "q")).session(session).cookie(xsrfCookie))
+        mockMvc.perform(get("/api/todos").with(oidcLogin()).session(session).cookie(xsrfCookie))
                 .andExpect(status().isOk())
                 .andDo(print())
                 .andExpect(content().string("[\"todo1\"]"));

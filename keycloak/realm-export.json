@@ -1,0 +1,40 @@
+{
+  "realm": "sbng",
+  "enabled": true,
+  "sslRequired": "none",
+  "clients": [
+    {
+      "clientId": "sbng-app",
+      "name": "sbng backend",
+      "enabled": true,
+      "protocol": "openid-connect",
+      "publicClient": false,
+      "clientAuthenticatorType": "client-secret",
+      "secret": "sbng-secret",
+      "standardFlowEnabled": true,
+      "directAccessGrantsEnabled": false,
+      "serviceAccountsEnabled": false,
+      "redirectUris": [
+        "http://localhost:8080/login/oauth2/code/keycloak"
+      ],
+      "webOrigins": [
+        "http://localhost:8080"
+      ]
+    }
+  ],
+  "users": [
+    {
+      "username": "q",
+      "enabled": true,
+      "emailVerified": true,
+      "email": "q@example.com",
+      "credentials": [
+        {
+          "type": "password",
+          "value": "q",
+          "temporary": false
+        }
+      ]
+    }
+  ]
+}

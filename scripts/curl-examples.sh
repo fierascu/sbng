@@ -1,13 +1,14 @@
 #!/usr/bin/env bash
 # Example curl calls against the sbng API.
 #
-# /services/** is exempt from both auth and CSRF (see SecurityConfig), so its
-# POST needs neither credentials nor a token. /api/todos still requires both:
-# Basic auth, and a CSRF token obtained from a prior GET.
+# /api2/services/** is exempt from both auth and CSRF (see SecurityConfig), so its
+# POST needs neither credentials nor a token. /api/tasks requires both: Basic auth
+# (user "q", password "q"), and a CSRF token obtained from a prior GET. /api/todos
+# requires OAuth2 login via Keycloak instead, so it isn't something curl can drive.
 
 # basic usage:
-# curl http://localhost:8080/services/
-# curl -X POST -d '' http://localhost:8080/services/service1
+# curl http://localhost:8080/api2/services/
+# curl -X POST -d '' http://localhost:8080/api2/services/service1
 
 
 set -euo pipefail
@@ -22,19 +23,19 @@ fetch_xsrf_token() {
   grep XSRF-TOKEN "$COOKIE_JAR" | awk '{print $7}'
 }
 
-echo "== Without credentials: GET /services =="
-curl -i "$BASE_URL/services"
+echo "== Without credentials: GET /api2/services =="
+curl -i "$BASE_URL/api2/services"
 echo
 
-echo "== Without credentials: POST /services/service1 =="
-curl -i -X POST -d '' "$BASE_URL/services/service1"
+echo "== Without credentials: POST /api2/services/service1 =="
+curl -i -X POST -d '' "$BASE_URL/api2/services/service1"
 echo
 
-echo "== With credentials: GET /api/todos =="
-curl -i -u q:q "$BASE_URL/api/todos"
+echo "== With credentials: GET /api/tasks =="
+curl -i -u q:q "$BASE_URL/api/tasks"
 echo
 
-echo "== With credentials: POST /api/todos/todo1 =="
-XSRF=$(fetch_xsrf_token -u q:q "$BASE_URL/api/todos")
-curl -i -X POST -u q:q -b "$COOKIE_JAR" -H "X-XSRF-TOKEN: $XSRF" "$BASE_URL/api/todos/todo1"
+echo "== With credentials: POST /api/tasks/task1 =="
+XSRF=$(fetch_xsrf_token -u q:q "$BASE_URL/api/tasks")
+curl -i -X POST -u q:q -b "$COOKIE_JAR" -H "X-XSRF-TOKEN: $XSRF" "$BASE_URL/api/tasks/task1"
 echo
