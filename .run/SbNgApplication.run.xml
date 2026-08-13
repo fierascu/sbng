@@ -1,0 +1,18 @@
+<component name="ProjectRunConfigurationManager">
+  <configuration default="false" name="SbNgApplication" type="SpringBootApplicationConfigurationType" factoryName="Spring Boot" nameIsGenerated="true">
+    <option name="DEBUG_MODE" value="true" />
+    <option name="FRAME_DEACTIVATION_UPDATE_POLICY" value="UnknownPolicyInFreeMode" />
+    <module name="sbng" />
+    <option name="SHORTEN_COMMAND_LINE" value="NONE" />
+    <option name="SPRING_BOOT_MAIN_CLASS" value="eu.wee.sbng.SbNgApplication" />
+    <extension name="coverage">
+      <pattern>
+        <option name="PATTERN" value="eu.wee.sbng.*" />
+        <option name="ENABLED" value="true" />
+      </pattern>
+    </extension>
+    <method v="2">
+      <option name="Make" enabled="true" />
+    </method>
+  </configuration>
+</component>

@@ -12,3 +12,13 @@ Steps:
 9. SecurityConfig.Cors?
 10. SecurityConfig.csrf?
 11. SecurityConfig.oauth2Login?
+
+#Notes
+
+#first time:
+IJ set JDK17
+IJ set node interpreter or 
+CMDs:
+./frontend/npm install
+./frontend/npm run build (this could be automated, not in scope)
+./frontend/npm run start

@@ -5,10 +5,10 @@ import org.springframework.boot.autoconfigure.SpringBootApplication;
 
 
 @SpringBootApplication
-public class SbArchitectureApplication {
+public class SbNgApplication {
 
 	public static void main(String[] args) {
-		SpringApplication.run(SbArchitectureApplication.class, args);
+		SpringApplication.run(SbNgApplication.class, args);
 	}
 
 }
