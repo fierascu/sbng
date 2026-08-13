@@ -1,0 +1,14 @@
+<div class="col-md-6">
+
+
+  <h4>Todos</h4>
+
+  <input [(ngModel)]="newTodo" placeholder="New todo" (keyup.enter)="addTodo()">
+
+
+  <button (click)="addTodo()" [disabled]="!newTodo.trim()">Add</button>
+
+  <ul>
+    <li *ngFor="let todo of todos">{{ todo }}</li>
+  </ul>
+</div>
