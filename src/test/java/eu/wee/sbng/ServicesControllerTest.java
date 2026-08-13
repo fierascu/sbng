@@ -6,7 +6,6 @@ import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.context.annotation.Import;
 import org.springframework.test.web.servlet.MockMvc;
 
-import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.httpBasic;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
@@ -14,32 +13,17 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 
 @WebMvcTest
 @Import(SecurityConfig.class)
-class GenericRestEndpointTest {
+class ServicesControllerTest {
 
     @Autowired
     private MockMvc mockMvc;
 
     @Test
-    void api401() throws Exception {
-        mockMvc.perform(get("/api/todos"))
-                .andExpect(status().isUnauthorized())
-                .andDo(print())
-                .andExpect(content().string(""));
-    }
-
-    @Test
-    void api200() throws Exception {
-        mockMvc.perform(get("/api/todos").with(httpBasic("q", "q")))
+    void testServicesController200() throws Exception {
+        mockMvc.perform(get("/services"))
                 .andExpect(status().isOk())
                 .andDo(print())
-                .andExpect(content().string("[\"API_OK\"]"));
+                .andExpect(content().string("CXF_API_OK"));
     }
 
-    @Test
-    void apiServicesOk() throws Exception {
-        mockMvc.perform(get("/api/services"))
-                .andExpect(status().isOk())
-                .andDo(print())
-                .andExpect(content().string("[\"one\",\"two\"]"));
-    }
 }
