@@ -6,6 +6,7 @@ import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.context.annotation.Import;
 import org.springframework.test.web.servlet.MockMvc;
 
+import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.httpBasic;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
@@ -24,6 +25,14 @@ class GenericRestEndpointTest {
                 .andExpect(status().isUnauthorized())
                 .andDo(print())
                 .andExpect(content().string(""));
+    }
+
+    @Test
+    void api200() throws Exception {
+        mockMvc.perform(get("/api/todos").with(httpBasic("q", "q")))
+                .andExpect(status().isOk())
+                .andDo(print())
+                .andExpect(content().string("[\"API_OK\"]"));
     }
 
     @Test
