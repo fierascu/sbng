@@ -7,6 +7,7 @@ import org.springframework.context.annotation.Import;
 import org.springframework.test.web.servlet.MockMvc;
 
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
@@ -24,6 +25,15 @@ class ServicesControllerTest {
                 .andExpect(status().isOk())
                 .andDo(print())
                 .andExpect(content().string("CXF_API_OK"));
+    }
+
+    @Test
+    void testServicesController200Post() throws Exception {
+        mockMvc.perform(post("/services/{service}", "service12")
+                        .content(""))
+                .andExpect(status().isOk())
+                .andDo(print())
+                .andExpect(content().string("[\"service12\"]"));
     }
 
 }
