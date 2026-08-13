@@ -22,3 +22,4 @@ CMDs:
 ./frontend/npm install
 ./frontend/npm run build (this could be automated, not in scope)
 ./frontend/npm run start
+./target/java -jar sbng-0.0.1-SNAPSHOT.jar

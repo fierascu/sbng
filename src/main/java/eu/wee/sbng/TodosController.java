@@ -9,18 +9,18 @@ import java.util.ArrayList;
 import java.util.List;
 
 @RestController
-public class GenericRestEndpoint {
+public class TodosController {
 
-    private static List<String> VALUES = new ArrayList<>(List.of("API_OK"));
+    private static final List<String> TODOS = new ArrayList<>();
 
     @GetMapping("/api/todos")
-    public List<String> getList() {
-        return VALUES;
+    public List<String> getTodos() {
+        return TODOS;
     }
 
-    @PostMapping("/api/todos/{newVal}")
-    public List<String> addToList(@PathVariable String newVal) {
-        VALUES.add(newVal);
-        return VALUES;
+    @PostMapping("/api/todos/{todo}")
+    public List<String> addTodo(@PathVariable String todo) {
+        TODOS.add(todo);
+        return TODOS;
     }
 }

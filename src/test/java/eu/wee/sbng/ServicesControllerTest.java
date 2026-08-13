@@ -3,6 +3,7 @@ package eu.wee.sbng;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
+import org.springframework.context.annotation.Import;
 import org.springframework.test.web.servlet.MockMvc;
 
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
@@ -11,16 +12,18 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 @WebMvcTest
-class GenericRestEndpointTest {
+@Import(SecurityConfig.class)
+class ServicesControllerTest {
 
     @Autowired
     private MockMvc mockMvc;
 
     @Test
-    void apiOk() throws Exception {
-        mockMvc.perform(get("/api/todos"))
+    void testServicesController200() throws Exception {
+        mockMvc.perform(get("/services"))
                 .andExpect(status().isOk())
                 .andDo(print())
-                .andExpect(content().string("[\"API_OK\"]"));
+                .andExpect(content().string("CXF_API_OK"));
     }
+
 }
