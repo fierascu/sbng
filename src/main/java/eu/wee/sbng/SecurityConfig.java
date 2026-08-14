@@ -90,9 +90,11 @@ public class SecurityConfig {
                 .csrf(csrf -> csrf
                         .csrfTokenRepository(CookieCsrfTokenRepository.withHttpOnlyFalse())
                         .csrfTokenRequestHandler(new CsrfTokenRequestAttributeHandler())
-                        // /api2/services/** is unauthenticated by design (see authorizeHttpRequests below);
-                        // a CSRF token would otherwise still be demanded on its POSTs, so exempt it too.
-                        .ignoringRequestMatchers("/api2/services/**"))
+                        // /api2/services/** and /services/** (the CXF SOAP endpoint) are
+                        // unauthenticated by design (see authorizeHttpRequests below); a CSRF
+                        // token would otherwise still be demanded on their POSTs, so exempt both -
+                        // a SOAP client has no XSRF-TOKEN cookie/header to send anyway.
+                        .ignoringRequestMatchers("/api2/services/**", "/services/**"))
                 // CookieCsrfTokenRepository only writes the cookie once the token is actually
                 // read; force that read on every request so the cookie is present before the
                 // SPA needs it for its first POST/PUT/DELETE.
@@ -100,6 +102,9 @@ public class SecurityConfig {
                 .authorizeHttpRequests(auth -> auth
                         // /** after services implies any endpoint after this
                         .requestMatchers("/api2/services/**").permitAll()
+                        // CXF SOAP endpoint (see soap/CxfConfig) - a SOAP client can't follow an
+                        // HTML/OAuth2 login redirect, and it only ever returns mocked demo data.
+                        .requestMatchers("/services/**").permitAll()
                         // browsers auto-request this; don't force Basic auth on it
                         .requestMatchers("/favicon.ico").permitAll()
                         // Spring Security filters the ERROR dispatch too (not just the original

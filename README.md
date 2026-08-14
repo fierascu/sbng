@@ -12,7 +12,7 @@ Steps:
 9. SecurityConfig.Cors: done
 10. SecurityConfig.csrf: done
 11. SecurityConfig.oauth2Login: done
-12. Real CXF?
+12. Real CXF: done
 
 #Notes
 
