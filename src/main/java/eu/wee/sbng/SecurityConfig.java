@@ -113,7 +113,23 @@ public class SecurityConfig {
                         // by oauth2Login below, replacing the Basic 401 with a Keycloak redirect.
                         .requestMatchers("/error").permitAll()
                         .anyRequest().authenticated())
-                .oauth2Login(Customizer.withDefaults());
+                .oauth2Login(Customizer.withDefaults())
+
+                .headers(headers -> headers
+                        .contentSecurityPolicy(csp -> csp
+                                .policyDirectives(
+                                        "default-src 'self'; " +
+                                                "script-src 'self'; " +
+                                                "style-src 'self' 'unsafe-inline'; " +
+                                                "img-src 'self' data:; " +
+                                                "font-src 'self' data:; " +
+                                                "connect-src 'self'; " +
+                                                "object-src 'none'; " +
+                                                "base-uri 'self'; " +
+                                                "frame-ancestors 'none'"
+                                ).reportOnly()
+                        )
+                );
 
         return http.build();
     }
