@@ -5,8 +5,44 @@ services:
     environment:
       KC_BOOTSTRAP_ADMIN_USERNAME: admin
       KC_BOOTSTRAP_ADMIN_PASSWORD: admin
+      # pin Keycloak's own idea of its hostname/issuer to one canonical value. Without
+      # this, Keycloak derives it per-request from the Host header - the browser reaches
+      # it via localhost:9080 but the backend container reaches it via keycloak:8080, so
+      # tokens/issuer claims from those two paths disagree and userinfo calls get 401'd.
+      KC_HOSTNAME: http://localhost:9080
     ports:
       # host 9080 -> container 8080, so it doesn't clash with the Spring app on 8080
       - "9080:8080"
     volumes:
       - ./keycloak/realm-export.json:/opt/keycloak/data/import/realm-export.json:ro
+
+  backend:
+    build: .
+    # not published to the host - nginx is the only public entry point,
+    # reached by other containers as http://backend:8080
+    environment:
+      # application.properties points these at http://localhost:9080, which is correct
+      # for the authorization-uri (the browser is redirected there directly) but wrong
+      # for these three - they're called server-to-server, backend container -> keycloak
+      # container, where "localhost" means the backend container itself. Override just
+      # these to the compose network's keycloak service/port (8080, not the host-published
+      # 9080).
+      SPRING_SECURITY_OAUTH2_CLIENT_PROVIDER_KEYCLOAK_TOKEN_URI: http://keycloak:8080/realms/sbng/protocol/openid-connect/token
+      SPRING_SECURITY_OAUTH2_CLIENT_PROVIDER_KEYCLOAK_JWK_SET_URI: http://keycloak:8080/realms/sbng/protocol/openid-connect/certs
+      SPRING_SECURITY_OAUTH2_CLIENT_PROVIDER_KEYCLOAK_USER_INFO_URI: http://keycloak:8080/realms/sbng/protocol/openid-connect/userinfo
+    depends_on:
+      - keycloak
+
+  nginx:
+    image: nginx:alpine
+    ports:
+      # host 8080 -> container 80. Would normally be 80:80, but this dev machine has
+      # port 80 in Windows' Hyper-V/WSL excluded port range (see `netsh interface ipv4
+      # show excludedportrange`), so no process can bind it. Whatever host port is
+      # published here must match keycloak/realm-export.json's redirectUris/webOrigins,
+      # since that's the origin the browser actually uses.
+      - "8080:80"
+    volumes:
+      - ./nginx/nginx.conf:/etc/nginx/nginx.conf:ro
+    depends_on:
+      - backend

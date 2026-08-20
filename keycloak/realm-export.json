@@ -28,6 +28,8 @@
       "enabled": true,
       "emailVerified": true,
       "email": "q@example.com",
+      "firstName": "Q",
+      "lastName": "User",
       "credentials": [
         {
           "type": "password",
