@@ -13,6 +13,7 @@ Steps:
 10. SecurityConfig.csrf: done
 11. SecurityConfig.oauth2Login: done
 12. Real CXF: done
+13. Nginx for SPA serving
 
 #Notes
 
