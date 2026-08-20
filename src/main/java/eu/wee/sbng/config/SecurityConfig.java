@@ -1,4 +1,4 @@
-package eu.wee.sbng;
+package eu.wee.sbng.config;
 
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;

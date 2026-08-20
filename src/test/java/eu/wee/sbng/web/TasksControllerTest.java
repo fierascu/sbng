@@ -1,5 +1,7 @@
-package eu.wee.sbng;
+package eu.wee.sbng.web;
 
+import eu.wee.sbng.TestOAuth2ClientConfig;
+import eu.wee.sbng.config.SecurityConfig;
 import jakarta.servlet.http.Cookie;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -9,8 +11,6 @@ import org.springframework.context.annotation.Import;
 import org.springframework.test.util.ReflectionTestUtils;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.MvcResult;
-
-import java.util.List;
 
 import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.httpBasic;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
@@ -25,9 +25,12 @@ class TasksControllerTest {
     @Autowired
     private MockMvc mockMvc;
 
+    @Autowired
+    private TasksController tasksController;
+
     @BeforeEach
     void clearTasks() {
-        ((List<?>) ReflectionTestUtils.getField(TasksController.class, "TASKS")).clear();
+        ((InMemoryList) ReflectionTestUtils.getField(tasksController, "tasks")).clear();
     }
 
     @Test

@@ -15,10 +15,10 @@ import org.springframework.security.oauth2.core.ClientAuthenticationMethod;
  * so this is what supplies the ClientRegistrationRepository oauth2Login() needs to build.
  */
 @TestConfiguration
-class TestOAuth2ClientConfig {
+public class TestOAuth2ClientConfig {
 
     @Bean
-    ClientRegistrationRepository clientRegistrationRepository() {
+    public ClientRegistrationRepository clientRegistrationRepository() {
         ClientRegistration keycloak = ClientRegistration.withRegistrationId("keycloak")
                 .clientId("sbng-app")
                 .clientSecret("sbng-secret")

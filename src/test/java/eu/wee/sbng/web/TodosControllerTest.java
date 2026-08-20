@@ -1,5 +1,7 @@
-package eu.wee.sbng;
+package eu.wee.sbng.web;
 
+import eu.wee.sbng.TestOAuth2ClientConfig;
+import eu.wee.sbng.config.SecurityConfig;
 import jakarta.servlet.http.Cookie;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -10,8 +12,6 @@ import org.springframework.mock.web.MockHttpSession;
 import org.springframework.test.util.ReflectionTestUtils;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.MvcResult;
-
-import java.util.List;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.oidcLogin;
@@ -26,9 +26,12 @@ class TodosControllerTest {
     @Autowired
     private MockMvc mockMvc;
 
+    @Autowired
+    private TodosController todosController;
+
     @BeforeEach
     void clearTodos() {
-        ((List<?>) ReflectionTestUtils.getField(TodosController.class, "TODOS")).clear();
+        ((InMemoryList) ReflectionTestUtils.getField(todosController, "todos")).clear();
     }
 
     @Test

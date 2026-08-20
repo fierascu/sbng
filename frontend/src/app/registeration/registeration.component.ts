@@ -1,4 +1,4 @@
-import { Component, OnInit } from '@angular/core';
+import { Component } from '@angular/core';
 import { FormControl, FormGroup, Validators } from '@angular/forms';
 
 @Component({
@@ -6,15 +6,11 @@ import { FormControl, FormGroup, Validators } from '@angular/forms';
   templateUrl: './registeration.component.html',
   styleUrls: ['./registeration.component.scss']
 })
-export class RegisterationComponent implements OnInit {
+export class RegisterationComponent {
   registerationForm: FormGroup;
 
   constructor () {
     this.registerationForm = this.initForm()
-  }
-
-  ngOnInit(): void {
-    this.initForm();
   }
 
   initForm() {

@@ -14,19 +14,6 @@
 	<version>0.0.1-SNAPSHOT</version>
 	<name>sbng</name>
 	<description>Demo project for Spring Boot with Angular, csrf, cxf, oauth</description>
-	<url/>
-	<licenses>
-		<license/>
-	</licenses>
-	<developers>
-		<developer/>
-	</developers>
-	<scm>
-		<connection/>
-		<developerConnection/>
-		<tag/>
-		<url/>
-	</scm>
 	<properties>
 		<java.version>17</java.version>
 		<skip.npm>false</skip.npm>
@@ -160,7 +147,8 @@
 							<outputDirectory>${project.build.outputDirectory}/static</outputDirectory>
 							<resources>
 								<resource>
-									<directory>${project.basedir}/frontend/dist/ng-14-app</directory>
+									<!-- must match frontend/angular.json -> projects.sbng-frontend.architect.build.options.outputPath -->
+									<directory>${project.basedir}/frontend/dist/sbng-frontend</directory>
 								</resource>
 							</resources>
 						</configuration>

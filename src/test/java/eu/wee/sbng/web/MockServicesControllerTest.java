@@ -1,5 +1,7 @@
-package eu.wee.sbng;
+package eu.wee.sbng.web;
 
+import eu.wee.sbng.TestOAuth2ClientConfig;
+import eu.wee.sbng.config.SecurityConfig;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
@@ -14,7 +16,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 
 @WebMvcTest
 @Import({SecurityConfig.class, TestOAuth2ClientConfig.class})
-class ServicesControllerTest {
+class MockServicesControllerTest {
 
     @Autowired
     private MockMvc mockMvc;
