@@ -19,6 +19,22 @@
       ],
       "webOrigins": [
         "http://localhost:8080"
+      ],
+      "protocolMappers": [
+        {
+          "name": "realm roles",
+          "protocol": "openid-connect",
+          "protocolMapper": "oidc-usermodel-realm-role-mapper",
+          "consentRequired": false,
+          "config": {
+            "multivalued": "true",
+            "claim.name": "roles",
+            "jsonType.label": "String",
+            "id.token.claim": "true",
+            "access.token.claim": "true",
+            "userinfo.token.claim": "true"
+          }
+        }
       ]
     }
   ],
@@ -36,7 +52,73 @@
           "value": "q",
           "temporary": false
         }
+      ],
+      "realmRoles": [
+        "SBNG_ROLE_ADMIN"
+      ]
+    },
+    {
+      "username": "sbng-norole",
+      "enabled": true,
+      "emailVerified": true,
+      "email": "sbng-norole@example.com",
+      "firstName": "No",
+      "lastName": "Role",
+      "credentials": [
+        {
+          "type": "password",
+          "value": "sbng-norole",
+          "temporary": false
+        }
+      ]
+    },
+    {
+      "username": "sbng-admin",
+      "enabled": true,
+      "emailVerified": true,
+      "email": "sbng-admin@example.com",
+      "firstName": "Sbng",
+      "lastName": "Admin",
+      "credentials": [
+        {
+          "type": "password",
+          "value": "sbng-admin",
+          "temporary": false
+        }
+      ],
+      "realmRoles": [
+        "SBNG_ROLE_ADMIN"
+      ]
+    },
+    {
+      "username": "sbng-viewer",
+      "enabled": true,
+      "emailVerified": true,
+      "email": "sbng-viewer@example.com",
+      "firstName": "Sbng",
+      "lastName": "Viewer",
+      "credentials": [
+        {
+          "type": "password",
+          "value": "sbng-viewer",
+          "temporary": false
+        }
+      ],
+      "realmRoles": [
+        "SBNG_ROLE_VIEW"
       ]
     }
-  ]
+  ],
+  "roles": {
+    "realm": [
+      {
+        "name": "SBNG_ROLE_ADMIN",
+        "description": "Full access to the sbng app"
+      },
+      {
+        "name": "SBNG_ROLE_VIEW",
+        "description": "Read access to the sbng app"
+      }
+    ]
+  }
 }

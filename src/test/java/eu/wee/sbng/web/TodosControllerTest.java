@@ -9,6 +9,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.context.annotation.Import;
 import org.springframework.mock.web.MockHttpSession;
+import org.springframework.security.core.authority.SimpleGrantedAuthority;
+import org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.OidcLoginRequestPostProcessor;
 import org.springframework.test.util.ReflectionTestUtils;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.MvcResult;
@@ -44,7 +46,7 @@ class TodosControllerTest {
 
     @Test
     void testTodosController200() throws Exception {
-        mockMvc.perform(get("/api/todos").with(oidcLogin()))
+        mockMvc.perform(get("/api/todos").with(viewer()))
                 .andExpect(status().isOk())
                 .andDo(print())
                 .andExpect(content().string("[]"));
@@ -52,7 +54,7 @@ class TodosControllerTest {
 
     @Test
     void testApiTodosGetAndPostAndGet() throws Exception {
-        MvcResult getResult = mockMvc.perform(get("/api/todos").with(oidcLogin()))
+        MvcResult getResult = mockMvc.perform(get("/api/todos").with(viewer()))
                 .andExpect(status().isOk())
                 .andDo(print())
                 .andExpect(content().string("[]"))
@@ -63,14 +65,14 @@ class TodosControllerTest {
 
         mockMvc.perform(post("/api/todos/{todo}", "todo1")
                         .content("")
-                        .with(oidcLogin())
+                        .with(viewer())
                         .cookie(xsrfCookie)
                         .header("X-XSRF-TOKEN", xsrfCookie.getValue()))
                 .andExpect(status().isOk())
                 .andDo(print())
                 .andExpect(content().string("[\"todo1\"]"));
 
-        mockMvc.perform(get("/api/todos").with(oidcLogin()))
+        mockMvc.perform(get("/api/todos").with(viewer()))
                 .andExpect(status().isOk())
                 .andDo(print())
                 .andExpect(content().string("[\"todo1\"]"));
@@ -80,7 +82,7 @@ class TodosControllerTest {
     void testApiTodosGetAndPostAndGetSameSession() throws Exception {
         MockHttpSession session = new MockHttpSession();
 
-        MvcResult getResult = mockMvc.perform(get("/api/todos").with(oidcLogin()).session(session))
+        MvcResult getResult = mockMvc.perform(get("/api/todos").with(viewer()).session(session))
                 .andExpect(status().isOk())
                 .andDo(print())
                 .andExpect(content().string("[]"))
@@ -91,7 +93,7 @@ class TodosControllerTest {
 
         MvcResult postResult = mockMvc.perform(post("/api/todos/{todo}", "todo1")
                         .content("")
-                        .with(oidcLogin())
+                        .with(viewer())
                         .session(session)
                         .cookie(xsrfCookie)
                         .header("X-XSRF-TOKEN", xsrfCookie.getValue()))
@@ -105,10 +107,22 @@ class TodosControllerTest {
         // rotation - which only runs on such an event - never triggers mid-session.
         assertThat(postResult.getResponse().getCookie("XSRF-TOKEN")).isNull();
 
-        mockMvc.perform(get("/api/todos").with(oidcLogin()).session(session).cookie(xsrfCookie))
+        mockMvc.perform(get("/api/todos").with(viewer()).session(session).cookie(xsrfCookie))
                 .andExpect(status().isOk())
                 .andDo(print())
                 .andExpect(content().string("[\"todo1\"]"));
+    }
+
+    @Test
+    void testTodosControllerAllowsAdmin() throws Exception {
+        mockMvc.perform(get("/api/todos").with(oidcLogin().authorities(new SimpleGrantedAuthority(SecurityConfig.ROLE_ADMIN))))
+                .andExpect(status().isOk());
+    }
+
+    @Test
+    void testTodosControllerForbidsUserWithoutRole() throws Exception {
+        mockMvc.perform(get("/api/todos").with(oidcLogin()))
+                .andExpect(status().isForbidden());
     }
 
     @Test
@@ -127,6 +141,10 @@ class TodosControllerTest {
                         .header("Origin", "http://evil.example.com")
                         .header("Access-Control-Request-Method", "GET"))
                 .andExpect(header().doesNotExist("Access-Control-Allow-Origin"));
+    }
+
+    private static OidcLoginRequestPostProcessor viewer() {
+        return oidcLogin().authorities(new SimpleGrantedAuthority(SecurityConfig.ROLE_VIEW));
     }
 
 }

@@ -30,10 +30,16 @@ import org.springframework.web.filter.OncePerRequestFilter;
 
 import java.io.IOException;
 import java.util.List;
+import java.util.Set;
 
 @Configuration
 @EnableWebSecurity
 public class SecurityConfig {
+
+    // Keycloak realm roles (keycloak/realm-export.json) allowed into the oauth2Login part of the app.
+    public static final String ROLE_ADMIN = "SBNG_ROLE_ADMIN";
+    public static final String ROLE_VIEW = "SBNG_ROLE_VIEW";
+    static final Set<String> APP_ROLES = Set.of(ROLE_ADMIN, ROLE_VIEW);
 
     // /api/tasks/** uses httpBasic instead of the Keycloak oauth2Login below - evaluated first
     // (lower @Order) so its securityMatcher carves those requests out of the oauth2Login chain.
@@ -112,8 +118,11 @@ public class SecurityConfig {
                         // internally by Boot's error handling and would otherwise be re-challenged
                         // by oauth2Login below, replacing the Basic 401 with a Keycloak redirect.
                         .requestMatchers("/error").permitAll()
-                        .anyRequest().authenticated())
-                .oauth2Login(Customizer.withDefaults())
+                        // KeycloakRolesOidcUserService already refuses the login of a user with
+                        // none of these roles; checked here too so access never rests on that alone.
+                        .anyRequest().hasAnyAuthority(ROLE_ADMIN, ROLE_VIEW))
+                .oauth2Login(oauth2 -> oauth2
+                        .userInfoEndpoint(userInfo -> userInfo.oidcUserService(new KeycloakRolesOidcUserService())))
 
                 .headers(headers -> headers
                         .contentSecurityPolicy(csp -> csp
